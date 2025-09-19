@@ -67,7 +67,7 @@ def train():
             y_hat = forward(student)
             y_true = student.firstYear
 
-            # Loss (binary cross entropy)
+            # Loss (binary cross entropy : shows how wrong the prediction was)
             loss = -(y_true * math.log(y_hat + 1e-8) + (1 - y_true) * math.log(1 - y_hat + 1e-8))
             total_loss += loss
 
