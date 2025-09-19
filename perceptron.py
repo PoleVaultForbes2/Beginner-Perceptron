@@ -1,3 +1,7 @@
+import math
+import random
+
+# Class of students with 4 attributes to determine Honors
 class Student:
     def __init__(self, name, prev, male, workHard, drink, firstYear):
         self.name = name
@@ -5,9 +9,10 @@ class Student:
         self.male = male
         self.workHard = workHard
         self.drink = drink
-        self.firstYear = firstYear
+        self.firstYear = int(firstYear)  # ensure it's 0 or 1
 
 
+# Training set
 students_list = [
     Student("Richard", True, True, False, True, False),
     Student("Alan", True, True, True, False, True),
@@ -17,110 +22,93 @@ students_list = [
     Student("Simon", False, True, True, True, False)
 ]
 
+# Testing Set (Custom so not really any relevance)
 test_student_list = [
     Student("Kyle", True, True, False, False, True),
-    Student("Sharon", True, False, False, False, True),
+    Student("Sharon", True, True, False, False, True),
     Student("Emily", False, False, False, False, False),
-    Student("Braden", True, True, False, True, True),
+    Student("Braden", True, True, False, True, False),
     Student("Bob", False, True, True, False, True),
     Student("Darron", False, True, True, True, False),
 ]
 
+# Initialize weights randomly
 weights = {
-    'prev': 2,
-    'male': 2,
-    'workHard': 2,
-    'drink': 2
+    'prev': random.uniform(-1, 1),
+    'male': random.uniform(-1, 1),
+    'workHard': random.uniform(-1, 1),
+    'drink': random.uniform(-1, 1)
 }
+bias = random.uniform(-1, 1)
 
-threshold = 6.0
-change = 0.5
-
-
-def adjust_weights(student, multiplier):
-    for attr in ['prev', 'male', 'workHard', 'drink']:
-        if getattr(student, attr):
-            weights[attr] += multiplier * change
+learning_rate = 0.1
+epochs = 5000   # number of training passes
 
 
-def check_student(student):
-    total = 0
-    for attr in ['prev', 'male', 'workHard', 'drink']:
-        if getattr(student, attr):
-            total += weights[attr]
-
-    is_first = total >= threshold
-
-    if is_first == student.firstYear:
-        return True
-    else:
-        adjust_weights(student, -1 if is_first else 1)
-        return False
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
 
 
-def test(student):
-    total = 0
-    for attr in ['prev', 'male', 'workHard', 'drink']:
-        if getattr(student, attr):
-            total += weights[attr]
+# Testing the weights to aquire t/f for honors
+def forward(student):
+    """Forward pass: weighted sum -> sigmoid activation"""
+    z = bias
+    for attr in weights:
+        z += weights[attr] * int(getattr(student, attr))
+    return sigmoid(z)
 
-    is_first = total >= threshold
 
-    if is_first == student.firstYear:
-        return True
-    else:
-        return False
+def train():
+    global bias
+    for epoch in range(epochs):
+        total_loss = 0
+        for student in students_list:
+            # Forward pass
+            y_hat = forward(student)
+            y_true = student.firstYear
+
+            # Loss (binary cross entropy)
+            loss = -(y_true * math.log(y_hat + 1e-8) + (1 - y_true) * math.log(1 - y_hat + 1e-8))
+            total_loss += loss
+
+            # Backpropagation (gradient descent update)
+            error = y_hat - y_true
+            for attr in weights:
+                weights[attr] -= learning_rate * error * int(getattr(student, attr))
+            bias -= learning_rate * error
+
+        # Print progress every 500 epochs
+        if epoch % 500 == 0:
+            print(f"Epoch {epoch}, Loss = {total_loss:.4f}")
+
+
+# Testing 
+def test_group(group):
+    correct = 0
+    for student in group:
+        prob = forward(student)
+        prediction = 1 if prob >= 0.5 else 0
+        if prediction == student.firstYear:
+            correct += 1
+    return correct, len(group)
 
 
 def main():
-    print("Welcome to the perceptron demonstration, there are 6 students in the list so far.")
-    while True:
-        user_input = input("Would you like to add another student? (yes or no): ")
-        if user_input.lower() == "no":
-            break
-        else:
-            #prompts for the input
-            prompts = [
-                ("name", str),
-                ("prev", bool),
-                ("male", bool),
-                ("workHard", bool),
-                ("drink", bool),
-                ("firstYear", bool)
-            ]
-            #for each prompt ask the user for input and store in student_data
-            student_data = {}
-            for prompt, data_type in prompts:
-                user_input = input(f"What is the {prompt}: ")
-                student_data[prompt] = data_type(user_input.lower() == "true")
+    print("Training with backpropagation...")
+    train()
 
-            new_student = Student(**student_data)
-            students_list.append(new_student)
+    print("\nFinal weights:")
+    print(weights)
+    print("Bias:", bias)
 
-    length = len(students_list)
+    print("\nTesting on training data:")
+    correct, total = test_group(students_list)
+    print(f"Accuracy: {correct}/{total}")
 
-    while True:
-        num_correct = 0
-        for student in students_list:
-            if check_student(student):
-                num_correct += 1
-
-        print(weights)
-        if num_correct == length:
-            print("The perceptron found weights that work for all the students! These are the values:")
-            print(weights)
-
-            print("Let's test the other students now")
-            num_pass = 0
-            for student in test_student_list:
-                if test(student):
-                    num_pass += 1
-            if num_pass == len(test_student_list):
-                print("The weights worked for the test group!")
-            else:
-                print("The weights didn't work for the test group.")
-
-            break
+    print("\nTesting on test data:")
+    correct, total = test_group(test_student_list)
+    print(f"Accuracy: {correct}/{total}")
 
 
-main()
+if __name__ == "__main__":
+    main()
