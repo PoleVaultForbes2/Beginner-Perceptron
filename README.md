@@ -1,12 +1,12 @@
 # Student Classifier with Backpropagation
 This project demonstrates how a perceptron can evolve into a **logistic regression–style classifier** using **sigmoid activation** and **backpropagation**.  
-It simulates how a model might classify students as first-year or not based on a few binary traits. The project is designed as an educational tool to help understand the transition from the simple perceptron learning rule to modern neural network training with gradient descent.
+It simulates how a model might classify students as first-year honors or not based on a few binary traits. The project is designed as an educational tool to help understand the transition from the simple perceptron learning rule to modern neural network training with gradient descent.
 
 🧑‍💻 **Author**  
 Josh Forbes  
 
 📘 **Project Overview**  
-The goal of this project is to predict whether a student is a first-year student based on certain attributes like:  
+The goal of this project is to predict whether a student is a first-year honors student based on certain attributes like:  
 * Whether they have previous experience  
 * Their gender  
 * Whether they work hard  
